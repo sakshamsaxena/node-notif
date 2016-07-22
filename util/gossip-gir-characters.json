@@ -1,0 +1,12 @@
+{"_id":{"$oid":"578c7ca40782d6c3a9ba1846"},"name":"Serena","status":"home"}
+{"_id":{"$oid":"578c7ccf0782d6c3a9ba1847"},"name":"Blair","status":"home"}
+{"_id":{"$oid":"578c7cd80782d6c3a9ba1848"},"name":"Dan","status":"home"}
+{"_id":{"$oid":"578c7ce00782d6c3a9ba1849"},"name":"Nate","status":"home"}
+{"_id":{"$oid":"578c7ce60782d6c3a9ba184a"},"name":"Jenny","status":"home"}
+{"_id":{"$oid":"578c7ced0782d6c3a9ba184b"},"name":"Chuck","status":"home"}
+{"_id":{"$oid":"578c7cfc0782d6c3a9ba184d"},"name":"Rufus","status":"home"}
+{"_id":{"$oid":"578c7d040782d6c3a9ba184e"},"name":"Vanessa","status":"home"}
+{"_id":{"$oid":"578c7d0b0782d6c3a9ba184f"},"name":"Ivy","status":"home"}
+{"_id":{"$oid":"578c7d180782d6c3a9ba1850"},"name":"Dorota","status":"home"}
+{"_id":{"$oid":"578c7d250782d6c3a9ba1851"},"name":"Georgina","status":"away"}
+{"_id":{"$oid":"578e5b2e78d444ccbb10cb22"},"name":"Lily","status":"home"}
