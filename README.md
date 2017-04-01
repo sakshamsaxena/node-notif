@@ -4,24 +4,11 @@
 
 ##### Mongo DB
 
-1) Preferably, kill the running instance of Mongod by : ``` sudo kill `ps -A | grep mongo | awk '{ print $1 }'` ```  
-
-2) [Deploy a Replica Set](https://docs.mongodb.com/manual/tutorial/deploy-replica-set-for-testing/) first (using root privileges).  
-
-3) Import both the databases from ``` util ``` folder.  
-```
-mongoimport --db gossip-girl --collection characters --file gossip-gir-characters.json  
-mongoimport --db subscribers --collection subscription --file subscription.json  
-
-```
-4) Start the Mongo Shell  
-```
-mongo --port 27017
-```
+You must have MongoDB installed, and your database should be a Replica Set.
 
 ##### Server
 
-Rename ``` config.sample.js ``` to ``` config.js ```, and update your email and password there. To use Gmail you may need to configure ["Allow Less Secure Apps"](https://www.google.com/settings/security/lesssecureapps) in your Gmail account unless you are using 2FA in which case you would have to create an [Application Specific](https://security.google.com/settings/security/apppasswords) password. You also may need to unlock your account with ["Allow access to your Google account"](https://accounts.google.com/DisplayUnlockCaptcha) to use SMTP. 
+Rename ``` config.sample.js ``` to ``` config.js ```, and update your configuration there. 
 
 ```
 npm install
@@ -30,11 +17,15 @@ npm start
 ```
 Server is live on localhost:8000
 
+### What is happening ?
+
+A subscriber subscribes via a POST request to the server. As and when any change in the database is recorded (via any means), the newly inserted/updated document is fetched by the service running at the backend, and is matched against any interested subscribers via the server. An email is sent to those subscribers notifying about the changes.
+
 ### Usage Example 
 
-1) Make sure that your Replica Set is running, the databases are imported, your email is updated in the ```config.js``` file, and the node server is live at port 8000 (see above).  
+1) Make sure that your Replica Set is running, the configuration is updated, and the node server is live at port 8000 (see above).  
 
-2) Subscribe yourself by sending a POST request (using POSTman or similar utility) to ``` localhost:8000/subscribe ```, which should include your email, and set to ```true``` only those characters you want to subscribe.
+2) Subscribe yourself by sending a POST request to ``` http://localhost:8000/Subscribe ```, which should include your email, and set to ```true``` only those characters you want to subscribe.
 
 ```
 {
@@ -44,15 +35,7 @@ Server is live on localhost:8000
 }
 ```
 
-3) On Mongo Shell, update a characters status.  
-
-```
-use gossip-girl
-db.characters.update({"name": "Dan"}, {$set: {"status": "away"}})
-```
-
-That's it! You'll get an email at the address which you POSTed in real-time!  
-
+3) On updateing the database with an entry insertion/upgradation, you'll get an email at the address which you POSTed in real-time!  
 
 ### Notes
 
@@ -63,3 +46,5 @@ That's it! You'll get an email at the address which you POSTed in real-time!
 3) The express server itself doesn't use Robe as ODM, and instead uses the native Mongo Driver for very basic CRUD operations. This is because Robe was picked initially mainly to facilitate the Oplog Tailing easily, as I'm not aware of other drivers/ODMs which support it like Robe does.
 
 4) Real-time notifications are currently being pushed out as Emails. 
+
+5) To use Gmail you may need to configure ["Allow Less Secure Apps"](https://www.google.com/settings/security/lesssecureapps) in your Gmail account unless you are using 2FA in which case you would have to create an [Application Specific](https://security.google.com/settings/security/apppasswords) password. You also may need to unlock your account with ["Allow access to your Google account"](https://accounts.google.com/DisplayUnlockCaptcha) to use SMTP. 
