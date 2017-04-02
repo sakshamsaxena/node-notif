@@ -17,6 +17,7 @@
     "co": "^4.6.0",
     "express": "^4.14.0",
     "express-rate-limit": "^2.6.0",
+    "mongodb": "^2.2.25",
     "robe": "^1.0.0"
   }
 }
