@@ -2,22 +2,22 @@
   "name": "node-notif",
   "version": "1.0.0",
   "description": "",
-  "main": "lib/DBMonitor.js",
+  "main": "lib/Routes.js",
   "scripts": {
-    "start": "node lib/DBMonitor.js"
+    "start": "node lib/Routes.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sakshamsaxena/node-notif.git"
   },
   "author": "Saksham Saxena",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
+    "amqplib": "^0.5.1",
     "body-parser": "^1.15.2",
-    "co": "^4.6.0",
     "express": "^4.14.0",
     "express-rate-limit": "^2.6.0",
     "mongodb": "^2.2.25",
-    "robe": "^1.0.0"
+    "rpi-gpio": "^0.8.1"
   }
 }
