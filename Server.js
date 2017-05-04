@@ -5,25 +5,22 @@ Created by sakshamsaxena
 
 /* Get Express and Mongo Up */
 const app = require('express')();
-const bodyParser = require('body-parser');
+const server = require('http').Server(app);
+const io = require('socket.io')(server);
 const MongoClient = require('mongodb').MongoClient;
-const RateLimit = require('express-rate-limit');
 const gpio = require('rpi-gpio');
+
+/* Middlewares and Config */
+const bodyParser = require('body-parser');
+const RateLimit = require('express-rate-limit');
 const config = require('../util/config.js');
-const amqp = require('amqplib/callback_api');
 
 /* Common Middlewares to process the Request */
 app.use(bodyParser.json());
-
+app.set('json space', 4);
 app.use(bodyParser.urlencoded({
     extended: true
 }));
-
-/* Middlewares for Publish */
-const validateKey = function(req, res, next) {
-    // Validation Process goes here
-    next();
-}
 
 /* Middlewares for Status */
 const limiter = new RateLimit({
@@ -59,16 +56,14 @@ gpio.on('change', function(channel, value) {
     });
 
     // Trigger Push Notification
-    var ex = 'SlotStatus';
-    var ch = 'Slots';
-    amqp.connect('amqp://localhost', function(err, conn) {
-        conn.createChannel(function(err, channel) {
-            channel.assertExchange(ex, 'fanout', { durable: true });
-            channel.publish(ex, ch, new Buffer(JSON.stringify(data)));
-            console.log("Published " + new Buffer(JSON.stringify(data)));
-        });
+    io.on('connection', function(socket) {
+        socket.emit('SlotChange', data);
     });
-})
+
+    io.close(function() {
+        console.log("Message published.");
+    });
+});
 
 /* Status Route */
 app.get('/Status', limiter, function(req, res) {
@@ -81,11 +76,6 @@ app.get('/Status', limiter, function(req, res) {
             db.close();
         })
     });
-});
-
-/* Subscribe Route */
-app.post('/Subscribe', function(req, res) {
-    // Keep Subscribers up to date
 });
 
 /* Listen to POrt 3000 */
