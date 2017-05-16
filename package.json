@@ -13,11 +13,9 @@
   "author": "Saksham Saxena",
   "license": "MIT",
   "dependencies": {
-    "amqplib": "^0.5.1",
     "body-parser": "^1.15.2",
     "express": "^4.14.0",
     "express-rate-limit": "^2.6.0",
-    "mongodb": "^2.2.25",
     "rpi-gpio": "^0.8.1",
     "socket.io": "^1.7.3"
   }
