@@ -7,9 +7,9 @@ Created by sakshamsaxena
 const path = require('path');
 const express = require('express');
 const app = express();
-const server = require('http').Server(app);
-const io = require('socket.io')(server);
-const gpio = require('rpi-gpio');
+const server = require('http').createServer(app);
+const io = require('socket.io').listen(server);
+var gpio = require('rpi-gpio');
 
 /* Get the current local IP and host it there */
 var ifaces = require('os').networkInterfaces();
@@ -26,8 +26,8 @@ const RateLimit = require('express-rate-limit');
 app.use(bodyParser.json());
 app.set('json space', 4);
 app.set('view engine', 'pug');
-app.set('views', path.join(__dirname, '..', 'views'));
-app.use(express.static(path.join(__dirname, '..', 'public')));
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({
 	extended: true
 }));
@@ -42,14 +42,11 @@ const limiter = new RateLimit({
 	statusCode: 404
 });
 
-/* GPIO Setup in BCM Schema (https://pinout.xyz) */
-var channels = [11];
-for (var i = channels.length - 1; i >= 0; i--) {
-	gpio.setup(channels[i], gpio.DIR_IN);
-};
+/* GPIO Setup in RPi Schema (https://pinout.xyz) */
 
 /* Listen to change in sensors */
 gpio.on('change', function(channel, value) {
+	console.log("Something Changed");
 	// Write status to database
 	var data = {};
 
@@ -58,13 +55,17 @@ gpio.on('change', function(channel, value) {
 
 	// Trigger Push Notification
 	io.on('connection', function(socket) {
-		socket.emit('SlotChange', data);
+		console.log("Connected.\n", data);
+		socket.broadcast.emit('SlotChange', data);
 	});
 
 	io.close(function() {
-		console.log("Message published.");
+		console.log("Closed");
 	});
 });
+
+	gpio.setup(11, gpio.DIR_IN, gpio.EDGE_BOTH);
+
 
 /* Home Route */
 app.get('/', function(req, res) {
@@ -72,6 +73,6 @@ app.get('/', function(req, res) {
 });
 
 /* Listen to Port 3000 */
-app.listen(3000, hostname, function() {
-	console.log("Pub Server is Live on 3000.")
+server.listen(3000, hostname, function() {
+	console.log("Pub Server is Live on "+hostname+":3000");
 });

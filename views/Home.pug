@@ -3,15 +3,15 @@ html.no-js
 head
     title Smart Parking
     link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css")
-    script(src="node_modules/socket.io-client/dist/socket.io.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.0/socket.io.slim.js")
     script(src="https://code.jquery.com/jquery-2.2.4.min.js")
-    link(rel="stylesheet", href="public/styles/main.css")
+    link(rel="stylesheet", href="styles/main.css")
 
 body
+    Hello world! This is HTML5 Boilerplate.
     p
-        Hello world! This is HTML5 Boilerplate.
-    - 
-        var socket = io.connect('http://localhost:3000');
+    script. 
+        var socket = io.connect('/');
         socket.on('SlotChange', function(data) {
         	$("p").append(data);
         });
