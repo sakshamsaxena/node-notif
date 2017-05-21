@@ -1,75 +1,98 @@
 /*
-Server.js
-Created by sakshamsaxena
+	Server.js
+	Created by sakshamsaxena
 */
 
-/* Get Express and Mongo Up */
-const path = require('path');
-const express = require('express');
-const app = express();
-const server = require('http').createServer(app);
-const io = require('socket.io').listen(server);
+
+/* 
+	Get Express and Socket Up 
+*/
+
+var path = require('path');
+var express = require('express');
+var app = express();
+var server = require('http').createServer(app);
+var io = require('socket.io').listen(server);
 var gpio = require('rpi-gpio');
-var data = {};
-/* Get the current local IP and host it there */
-var ifaces = require('os').networkInterfaces();
-if (ifaces.wlan0 !== undefined && ifaces.wlan0[0].family == 'IPv4')
-	hostname = ifaces.wlan0[0].address;
-if (ifaces.eth0 !== undefined && ifaces.eth0[0].family == 'IPv4')
-	hostname = ifaces.eth0[0].address;
 
-/* Middlewares and Config */
-const bodyParser = require('body-parser');
-const RateLimit = require('express-rate-limit');
+/* 
+	Get the current local IPv4 Address from the LAN and host the Server at that IP
+*/
 
-/* Common Middlewares to process the Request */
+var OS = require('os');
+var Interfaces = OS.networkInterfaces();
+var hostname = Interfaces.eth0[0].address;
+
+/* 
+	Middlewares and Config 
+*/
+
+var bodyParser = require('body-parser');
+var RateLimit = require('express-rate-limit');
+
+/* 
+	Common Middlewares to process the Request 
+*/
+
 app.use(bodyParser.json());
 app.set('json space', 4);
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(bodyParser.urlencoded({
-	extended: true
-}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
-/* Middlewares for Status */
-const limiter = new RateLimit({
-	windowMs: 60 * 60 * 1000,
-	max: 60,
-	delayMs: 0,
-	delayAfter: 0,
-	message: 'You have reached the maximum number of requests per hour. Please try again later.',
-	statusCode: 404
+/* 
+	Middlewares for Status 
+*/
+
+var limiter = new RateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 60,
+    delayMs: 0,
+    delayAfter: 0,
+    message: 'You have reached the maximum number of requests per hour. Please try again later.',
+    statusCode: 403
 });
 
-/* GPIO Setup in RPi Schema (https://pinout.xyz) */
+/* 
+	GPIO Setup in RPi Schema (https://pinout.xyz) 
+*/
+
 gpio.setup(11, gpio.DIR_IN, gpio.EDGE_BOTH);
 
-/* Listen to change in sensors */
+/* 
+	Listen to change in sensors 
+*/
+
 gpio.on('change', function(channel, value) {
-	// Write status to database
-	data.channel = channel;
-	data.value = value;
+    var data = {};
+    data.channel = channel;
+    data.value = value;
 
-	if (value)
-		console.log("Parking Slot " + channel + " Occupied.");
-	else
-		console.log("Parking Slot " + channel + " Vacant.");
-	io.emit('SlotChange', data);
+    if (value)
+        console.log("Parking Slot " + channel + " Occupied.");
+    else
+        console.log("Parking Slot " + channel + " Vacant.");
+
+    io.emit('SlotChange', data);
 });
 
-/* Home Route */
+/* 
+	Routes
+*/
+
 app.get('/', function(req, res) {
-	res.render('Home');
+    res.render('Home');
 });
-function PushOut(data){
-	// Trigger Push Notification
-	io.on('connection', function(socket) {
-		console.log("Connected.\n", data);
-		io.emit('SlotChange', data);
-	});
-}
-/* Listen to Port 3000 */
+
+app.get('/Status', function(req, res) {
+    res.send("Status Goes Here");
+})
+
+/* 
+	Listen to Port 3000
+*/
+
 server.listen(3000, hostname, function() {
-	console.log("Pub Server is Live on " + hostname + ":3000");
+    console.log("Pub Server is Live on " + hostname + ":3000");
 });

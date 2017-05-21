@@ -9,5 +9,5 @@ body Hello world! This is HTML5 Boilerplate.
 	script.
 		var socket = io.connect('');
 		socket.on('SlotChange', function(data) {
-			document.getElementsByTagName("p")[0].innerHTML += data;
+			document.getElementsByTagName("p")[0].innerHTML += JSON.stringify(data);
 		});
