@@ -55,23 +55,20 @@ gpio.on('change', function(channel, value) {
 		console.log("Parking Slot " + channel + " Occupied.");
 	else
 		console.log("Parking Slot " + channel + " Vacant.");
-
-	process.nextTick(PushOut(data));
+	io.emit('SlotChange', data);
 });
 
 /* Home Route */
 app.get('/', function(req, res) {
 	res.render('Home');
 });
-
-function PushOut(data) {
+function PushOut(data){
 	// Trigger Push Notification
 	io.on('connection', function(socket) {
 		console.log("Connected.\n", data);
-		socket.broadcast.emit('SlotChange', data);
+		io.emit('SlotChange', data);
 	});
 }
-
 /* Listen to Port 3000 */
 server.listen(3000, hostname, function() {
 	console.log("Pub Server is Live on " + hostname + ":3000");
