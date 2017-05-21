@@ -7,11 +7,10 @@ head
     script(src="https://code.jquery.com/jquery-2.2.4.min.js")
     link(rel="stylesheet", href="styles/main.css")
 
-body
-    Hello world! This is HTML5 Boilerplate.
-    p
-    script. 
-        var socket = io.connect('/');
+body Hello world! This is HTML5 Boilerplate.
+    p data will show here
+    script.
+        var socket = io.connect('');
         socket.on('SlotChange', function(data) {
         	$("p").append(data);
         });
