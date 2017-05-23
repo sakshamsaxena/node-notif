@@ -1,11 +1,11 @@
 /*
-	Server.js
-	Created by sakshamsaxena
+    Server.js
+    Created by sakshamsaxena
 */
 
 
 /* 
-	Get Express and Socket Up 
+    Get Express, Mongo, Socket and GPIO Up 
 */
 
 var path = require('path');
@@ -17,22 +17,28 @@ var MongoClient = require('mongodb').MongoClient;
 var gpio = require('rpi-gpio');
 
 /* 
-	Get the current local IPv4 Address from the LAN and host the Server at that IP
+    Get the current local IPv4 Address from the WAN/LAN and host the Server at that IP
 */
 
 var OS = require('os');
 var Interfaces = OS.networkInterfaces();
-var hostname = Interfaces.eth0[0].address;
+var WAN = Interfaces.wlan0[0];
+var LAN = Interfaces.eth0[0];
+var hostname;
+if (WAN == undefined)
+    hostname = LAN.address
+else
+    hostname = WAN.address;
 
 /* 
-	Middlewares and Config 
+    Middlewares and Config 
 */
 
 var bodyParser = require('body-parser');
 var RateLimit = require('express-rate-limit');
 
 /* 
-	Common Middlewares to process the Request 
+    Common Middlewares to process the Request 
 */
 
 app.use(bodyParser.json());
@@ -43,7 +49,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: true }));
 
 /* 
-	Middlewares for Status 
+    Middlewares for Status 
 */
 
 var limiter = new RateLimit({
@@ -56,21 +62,23 @@ var limiter = new RateLimit({
 });
 
 /* 
-	GPIO Setup in RPi Schema (https://pinout.xyz) 
+    GPIO Setup in RPi Schema (https://pinout.xyz) 
 */
 var channels = [11, 13, 15, 16];
 for (var i = channels.length - 1; i >= 0; i--)
     gpio.setup(channels[i], gpio.DIR_IN, gpio.EDGE_BOTH);
 
 /* 
-	Listen to change in sensors 
+    Listen to change in sensors 
 */
 
 gpio.on('change', function(channel, value) {
+
     var data = {};
     data.channel = channel;
     data.value = value;
     data.time = (new Date()).getTime();
+    data.parkingLot = config.parkingLot;
 
     if (value)
         console.log("[" + data.time + "] " + "Parking Slot " + channel + " Occupied.");
@@ -90,7 +98,7 @@ gpio.on('change', function(channel, value) {
 });
 
 /* 
-	Routes
+    Routes
 */
 
 app.get('/', function(req, res) {
@@ -108,7 +116,7 @@ app.get('/Status', function(req, res) {
 })
 
 /* 
-	Listen to Port 3000
+    Listen to Port 3000
 */
 
 server.listen(3000, hostname, function() {
