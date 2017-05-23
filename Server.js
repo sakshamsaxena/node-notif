@@ -13,6 +13,7 @@ var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
+var MongoClient = require('mongodb').MongoClient;
 var gpio = require('rpi-gpio');
 
 /* 
@@ -57,8 +58,9 @@ var limiter = new RateLimit({
 /* 
 	GPIO Setup in RPi Schema (https://pinout.xyz) 
 */
-
-gpio.setup(11, gpio.DIR_IN, gpio.EDGE_BOTH);
+var channels = [11, 13, 15, 16];
+for (var i = channels.length - 1; i >= 0; i--)
+    gpio.setup(channels[i], gpio.DIR_IN, gpio.EDGE_BOTH);
 
 /* 
 	Listen to change in sensors 
@@ -68,11 +70,21 @@ gpio.on('change', function(channel, value) {
     var data = {};
     data.channel = channel;
     data.value = value;
+    data.time = (new Date()).getTime();
 
     if (value)
-        console.log("Parking Slot " + channel + " Occupied.");
+        console.log("[" + data.time + "] " + "Parking Slot " + channel + " Occupied.");
     else
-        console.log("Parking Slot " + channel + " Vacant.");
+        console.log("[" + data.time + "] " + "Parking Slot " + channel + " Vacant.");
+
+    MongoClient.connect(config.db.url, function(err, db) {
+        if (err) throw err;
+        db.collection(config.db.collection).insertOne(data, function(err, result) {
+            if (err) throw err;
+            console.log("Written new status to database.");
+            db.close();
+        })
+    });
 
     io.emit('SlotChange', data);
 });
@@ -86,7 +98,13 @@ app.get('/', function(req, res) {
 });
 
 app.get('/Status', function(req, res) {
-    res.send("Status Goes Here");
+    MongoClient.connect(config.db.url, function(err, db) {
+        if (err) throw err;
+        db.collection(config.db.collection).findOne({}).toArray(function(err, docs) {
+            res.send(docs);
+            db.close();
+        })
+    })
 })
 
 /* 
