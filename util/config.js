@@ -6,3 +6,12 @@ exports.db = {
 	fieldName	: "FIELDNAME",
 	operation	: "OPERATION"
 };
+
+exports.master = {
+	name 		: "PI NAME",
+	_id			: "ID"
+}
+
+exports.slots = {
+	_11			: 1
+}
