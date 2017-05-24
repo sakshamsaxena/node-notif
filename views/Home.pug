@@ -17,36 +17,20 @@ body
 	div.container.parkingLot
 		div.row
 			div.col.s1.m1
-			div.col.s1.m1
-				div.card
-					div.card-content
-						span(id= 11).card-title.center ##{11}
-						p.status.center Vacant
-						p= _11
-			div.col.s1.m1
-				div.card
-					div.card-content
-						span(id= 13).card-title.center ##{13}
-						p.status.center Vacant
-						p= _13
+			- for (var ch in data)
+				div.col.s1.m1
+					div.card
+						div.card-content
+							span(id=ch).card-title.center #{ch}
+							if data[ch]
+								p.status.center Filled
+							else
+								p.status.center Vacant
 
-			div.col.s1.m1
-				div.card
-					div.card-content
-						span(id= 15).card-title.center ##{15}
-						p.status.center Vacant
-						p= _15
-
-			div.col.s1.m1
-				div.card
-					div.card-content
-						span(id= 16).card-title.center ##{16}
-						p.status.center Vacant
-						p= _16
 
 	script.
 		function UpdateSlot(data){
-			var target = "#"+data.channel+"+p";
+			var target = "#_"+data.channel+"+p";
 			if(data.value) {
 				$(target).text("Filled");
 				$(target).parent().parent().css("background", "Red");
