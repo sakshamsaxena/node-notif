@@ -47,8 +47,10 @@ body
 				else
 					$(this).parent().parent().css("background", "Red");
 			});
-			var _ch = $("span.card-title").text();
-			$("span.card-title").text(_ch.substr(1,2));
+			$("span.card-title").each(function() {
+				var _ch = $(this).text();
+				$(this).text("Slot #"+_ch.substr(1,2));
+			});
 		});	
 		var socket = io.connect('');
 		socket.on('SlotChange', function(data) {
