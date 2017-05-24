@@ -15,6 +15,7 @@ var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
 var MongoClient = require('mongodb').MongoClient;
 var gpio = require('rpi-gpio');
+var config = require('./util/config.js');
 
 /* 
     Get the current local IPv4 Address from the WAN/LAN and host the Server at that IP
@@ -22,13 +23,7 @@ var gpio = require('rpi-gpio');
 
 var OS = require('os');
 var Interfaces = OS.networkInterfaces();
-var WAN = Interfaces.wlan0[0];
-var LAN = Interfaces.eth0[0];
-var hostname;
-if (WAN == undefined)
-    hostname = LAN.address
-else
-    hostname = WAN.address;
+var hostname = Interfaces.eth0[0].address;
 
 /* 
     Middlewares and Config 
@@ -65,6 +60,7 @@ var limiter = new RateLimit({
     GPIO Setup in RPi Schema (https://pinout.xyz) 
 */
 var channels = [11, 13, 15, 16];
+var channelValues = { _11 : false, _13 : false, _15 : false, _16 : false};
 for (var i = channels.length - 1; i >= 0; i--)
     gpio.setup(channels[i], gpio.DIR_IN, gpio.EDGE_BOTH);
 
@@ -75,15 +71,11 @@ for (var i = channels.length - 1; i >= 0; i--)
 gpio.on('change', function(channel, value) {
 
     var data = {};
-    data.channel = channel;
-    data.value = value;
+    var ch = "_"+channel;
+    channelValues[ch] = value;
+    data.channelValues = channelValues;
     data.time = (new Date()).getTime();
     data.parkingLot = config.parkingLot;
-
-    if (value)
-        console.log("[" + data.time + "] " + "Parking Slot " + channel + " Occupied.");
-    else
-        console.log("[" + data.time + "] " + "Parking Slot " + channel + " Vacant.");
 
     MongoClient.connect(config.db.url, function(err, db) {
         if (err) throw err;
@@ -93,8 +85,10 @@ gpio.on('change', function(channel, value) {
             db.close();
         })
     });
-
-    io.emit('SlotChange', data);
+var toBeSent = {};
+toBeSent.channel = channel;
+toBeSent.value = value;
+    io.emit('SlotChange', toBeSent);
 });
 
 /* 
@@ -102,17 +96,19 @@ gpio.on('change', function(channel, value) {
 */
 
 app.get('/', function(req, res) {
-    res.render('Home');
+    res.render('Home', channelValues);
 });
 
 app.get('/Status', function(req, res) {
+
     MongoClient.connect(config.db.url, function(err, db) {
         if (err) throw err;
-        db.collection(config.db.collection).findOne({}).toArray(function(err, docs) {
+        db.collection(config.db.collection).find({}).toArray(function(err, docs) {
             res.send(docs);
             db.close();
         })
     })
+
 })
 
 /* 
