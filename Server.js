@@ -5,14 +5,13 @@
 
 
 /* 
-	Get Express, Mongo, Socket and GPIO Up 
+	Get Express Up 
 */
 var path = require('path');
 var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
-var MongoClient = require('mongodb').MongoClient;
 var config = require('./util/config.js');
 
 /* 
@@ -40,48 +39,45 @@ var validateKey = function(req, res, next) {
 	Middlewares for Status 
 */
 var limiter = new RateLimit({
-	windowMs: 60 * 60 * 1000,
-	max: 60,
-	delayMs: 0,
-	delayAfter: 0,
-	message: 'You have reached the maximum number of requests per hour. Please try again later.',
-	statusCode: 403
+    windowMs: 60 * 60 * 1000,
+    max: 60,
+    delayMs: 0,
+    delayAfter: 0,
+    statusCode: 403,
+    message: 'You have reached the maximum number of requests per hour. Please try again later.'
 });
 
 /* 
 	Routes
 */
 app.post('/Register', function(req, res) {
-	/* New Devices/Publishers register themselves here once. */
-
+    /* New Devices/Publishers register themselves here. */
+    res.end();
 });
+
 app.post('/Publish', validateKey, function(req, res) {
-	/* Devices Publish data to this route. */
-	var data = req.body.data;
-	MongoClient.connect(config.db.url, function(err, db) {
-		if (err) throw err;
-		db.collection(config.db.collection).insertOne(data, function(err, result) {
-			if (err) throw err;
-			console.log("Written new status to database.");
-			db.close();
-		})
-	});
-	res.end();
+    /* Devices Publish data to this route. */
+    var data = req.body.data;
+    res.end();
 });
 
 app.get('/Status', limiter, function(req, res) {
-	MongoClient.connect(config.db.url, function(err, db) {
-		if (err) throw err;
-		db.collection(config.db.collection).findOne({}).toArray(function(err, docs) {
-			res.send(docs);
-			db.close();
-		})
-	})
-})
+    /* Static route to get the current (latest) status of the Device/Publisher */
+    res.end();
+});
+
+app.post('/Subscribe', function(req, res) {
+    /* Subscribers subscribe via this route. */
+    res.end();
+});
+
+app.get('/', function(req, res) {
+	/* Serve the Live Content */
+});
 
 /* 
 	Listen to Port 3000
 */
 server.listen(3000, function() {
-	console.log("Server is Live on Port 3000");
+    console.log("Server is Live on Port 3000");
 });
