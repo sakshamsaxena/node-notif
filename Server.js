@@ -7,7 +7,6 @@
 /* 
 	Get Express, Mongo, Socket and GPIO Up 
 */
-
 var path = require('path');
 var express = require('express');
 var app = express();
@@ -15,25 +14,31 @@ var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
 var MongoClient = require('mongodb').MongoClient;
 var config = require('./util/config.js');
+
 /* 
 	Middlewares and Config 
 */
-
 var bodyParser = require('body-parser');
 var RateLimit = require('express-rate-limit');
 
 /* 
 	Common Middlewares to process the Request 
 */
-
 app.use(bodyParser.json());
 app.set('json space', 4);
 app.use(bodyParser.urlencoded({ extended: true }));
 
 /* 
+	Middlewares for Publish 
+*/
+var validateKey = function(req, res, next) {
+    /* Validation Process goes here */
+    next();
+}
+
+/* 
 	Middlewares for Status 
 */
-
 var limiter = new RateLimit({
 	windowMs: 60 * 60 * 1000,
 	max: 60,
@@ -46,10 +51,13 @@ var limiter = new RateLimit({
 /* 
 	Routes
 */
+app.post('/Register', function(req, res) {
+	/* New Devices/Publishers register themselves here once. */
 
-app.post('/Publish', function(req, res) {
+});
+app.post('/Publish', validateKey, function(req, res) {
 	/* Devices Publish data to this route. */
-	var data = req.body;
+	var data = req.body.data;
 	MongoClient.connect(config.db.url, function(err, db) {
 		if (err) throw err;
 		db.collection(config.db.collection).insertOne(data, function(err, result) {
@@ -61,7 +69,7 @@ app.post('/Publish', function(req, res) {
 	res.end();
 });
 
-app.get('/Status', function(req, res) {
+app.get('/Status', limiter, function(req, res) {
 	MongoClient.connect(config.db.url, function(err, db) {
 		if (err) throw err;
 		db.collection(config.db.collection).findOne({}).toArray(function(err, docs) {
@@ -74,7 +82,6 @@ app.get('/Status', function(req, res) {
 /* 
 	Listen to Port 3000
 */
-
 server.listen(3000, function() {
 	console.log("Server is Live on Port 3000");
 });
