@@ -75,7 +75,6 @@ gpio.on('change', function(channel, value) {
     channelValues[ch] = value;
     data.channelValues = channelValues;
     data.time = (new Date()).getTime();
-    data.parkingLot = config.parkingLot;
 
     MongoClient.connect(config.db.url, function(err, db) {
         if (err) throw err;
@@ -83,12 +82,15 @@ gpio.on('change', function(channel, value) {
             if (err) throw err;
             console.log("Written new status to database.");
             db.close();
-        })
+        });
     });
-var toBeSent = {};
-toBeSent.channel = channel;
-toBeSent.value = value;
+
+    var toBeSent = {};
+    toBeSent.channel = channel;
+    toBeSent.value = value;
+    
     io.emit('SlotChange', toBeSent);
+
 });
 
 /* 
@@ -96,7 +98,7 @@ toBeSent.value = value;
 */
 
 app.get('/', function(req, res) {
-    res.render('Home', channelValues);
+    res.render('Home', {data :channelValues});
 });
 
 app.get('/Status', function(req, res) {
